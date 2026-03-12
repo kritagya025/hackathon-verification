@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Find Your Hackathon Room</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#020617;
+color:white;
+text-align:center;
+padding:40px;
+}
+
+input{
+padding:10px;
+width:250px;
+}
+
+button{
+padding:10px 20px;
+background:lime;
+border:none;
+cursor:pointer;
+}
+
+.card{
+margin-top:20px;
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+width:300px;
+margin:auto;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Find Your Room</h1>
+
+<input id="teamName" placeholder="Enter Team Name">
+<button onclick="findRoom()">Find Room</button>
+
+<div id="result"></div>
+
+<script src="data.js"></script>
+
+<script>
+
+function findRoom(){
+
+const name = document.getElementById("teamName").value.toLowerCase()
+
+const team = teams.find(t => t.TeamName.toLowerCase() === name)
+
+if(!team){
+document.getElementById("result").innerHTML="Team not found"
+return
+}
+
+document.getElementById("result").innerHTML = `
+
+<div class="card">
+
+<h2>${team.TeamName}</h2>
+
+<p><b>Room Number:</b> ${team.Room}</p>
+
+</div>
+
+`
+
+}
+
+</script>
+
+</body>
+</html>
