@@ -3,151 +3,248 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verification Portal | Premium</title>
+    <title>TERMINAL | Registry Elite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+
     <style>
-        :root { --bg: #030303; }
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: var(--bg); color: #a1a1aa; overflow-x: hidden; }
-        h1, h2, .font-mono { font-family: 'Space Grotesk', sans-serif; }
-
-        .mesh-bg {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 0% 0%, #111 0%, transparent 50%), radial-gradient(circle at 100% 100%, #0a0a0a 0%, transparent 50%);
-            z-index: -2;
+        :root {
+            --cyan: #00f2ff;
+            --pink: #ff0055;
+            --bg: #050505;
         }
 
-        .grid-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-            background-size: 40px 40px; z-index: -1;
-            mask-image: radial-gradient(ellipse at center, black, transparent 80%);
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--bg);
+            color: #fff;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 50%, #111 0%, transparent 100%),
+                url('https://grainy-gradients.vercel.app/noise.svg');
         }
 
-        .glass { background: rgba(255, 255, 255, 0.02); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
 
-        .scanline {
-            width: 100%; height: 2px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            position: absolute; top: 0; animation: scan 3s linear infinite;
+        /* Scanning HUD Frame */
+        .hud-frame {
+            position: fixed;
+            inset: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            z-index: 50;
         }
-        @keyframes scan { 0% { top: 0%; opacity: 0; } 50% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 
-        .reveal-3d { animation: reveal3d 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; perspective: 1000px; }
-        @keyframes reveal3d { from { opacity: 0; transform: rotateX(-10deg) translateY(40px); } to { opacity: 1; transform: rotateX(0) translateY(0); } }
+        .hud-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--cyan);
+        }
+
+        /* Glass Cards */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.01);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: 0.5s;
+        }
+
+        .glass-panel:hover::before {
+            left: 100%;
+        }
+
+        /* Status Glows */
+        .verified-glow { box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); border-color: var(--cyan); }
+        .pending-glow { box-shadow: 0 0 20px rgba(255, 0, 85, 0.2); border-color: var(--pink); }
+
+        /* Animations */
+        @keyframes pulse-cyan {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; text-shadow: 0 0 10px var(--cyan); }
+        }
+        .animate-status { animation: pulse-cyan 2s infinite; }
+
+        .scan-bar {
+            position: absolute;
+            width: 100%;
+            height: 1px;
+            background: var(--cyan);
+            top: 0;
+            left: 0;
+            opacity: 0.3;
+            animation: scan-move 4s linear infinite;
+        }
+
+        @keyframes scan-move {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        input::placeholder { color: rgba(255,255,255,0.2); text-transform: uppercase; font-size: 10px; letter-spacing: 2px; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center py-20 px-6">
 
-    <div class="mesh-bg"></div>
-    <div class="grid-overlay"></div>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
 
-    <header class="text-center mb-16 relative">
-        <h1 class="text-6xl font-bold tracking-tighter text-white mb-4 uppercase">Registry</h1>
-        <p class="text-[10px] tracking-[0.5em] font-bold uppercase text-zinc-500">Official Verification Protocol</p>
-    </header>
+    <div class="hud-frame">
+        <div class="hud-corner top-0 left-0 border-r-0 border-b-0"></div>
+        <div class="hud-corner top-0 right-0 border-l-0 border-b-0"></div>
+        <div class="hud-corner bottom-0 left-0 border-r-0 border-t-0"></div>
+        <div class="hud-corner bottom-0 right-0 border-l-0 border-t-0"></div>
+    </div>
 
-    <main class="w-full max-w-2xl">
-        <div class="glass p-2 rounded-2xl flex flex-col md:flex-row gap-2 mb-12">
-            <input list="teamList" id="teamName" placeholder="Search Team Identity..." class="bg-transparent flex-grow p-4 outline-none text-white placeholder:text-zinc-700 font-medium">
+    <div class="text-center mb-10 z-10">
+        <div class="inline-block px-3 py-1 border border-cyan-500/30 text-cyan-400 text-[10px] tracking-[0.4em] uppercase mb-4 font-mono animate-status">
+            Secure Access Granted
+        </div>
+        <h1 class="text-8xl font-black tracking-tighter uppercase italic mix-blend-difference">
+            Registry<span class="text-cyan-500 text-6xl">.</span>
+        </h1>
+    </div>
+
+    <main class="w-full max-w-3xl z-10">
+        
+        <div class="glass-panel rounded-lg p-1 mb-8 flex items-center group transition-all hover:border-cyan-500/50">
+            <div class="pl-6 text-cyan-500">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+            </div>
+            <input
+                list="teamList"
+                id="teamName"
+                placeholder="Initialize Identity Scan..."
+                class="bg-transparent flex-grow p-6 outline-none text-white font-mono tracking-widest uppercase text-sm"
+                onkeypress="if(event.key === 'Enter') searchTeam()"
+            >
             <datalist id="teamList"></datalist>
-            <div class="flex gap-2 p-1">
-                <button onclick="searchTeam()" class="bg-white text-black px-10 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:scale-[1.02] transition-all">Verify</button>
-                <button onclick="clearResult()" class="bg-zinc-900 text-zinc-500 px-5 py-3 rounded-xl border border-zinc-800">✕</button>
+            
+            <button
+                onclick="searchTeam()"
+                class="bg-cyan-500 hover:bg-white text-black h-[60px] px-12 transition-all font-black text-xs uppercase tracking-[0.2em]"
+            >
+                Search
+            </button>
+        </div>
+
+        <div id="result" class="min-h-[300px]">
+            <div class="text-center opacity-30 mt-20">
+                <p class="font-mono text-[10px] tracking-[1em] uppercase">Awaiting Protocol...</p>
             </div>
         </div>
 
-        <div id="result" class="min-h-[400px]">
-            <div class="flex flex-col items-center justify-center pt-20 opacity-20">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
-                <p class="text-[10px] tracking-[0.3em] uppercase font-bold mt-4">System Ready</p>
-            </div>
-        </div>
     </main>
 
     <script>
         let teams = [];
+
+        // Simulated Database (Same structure as before)
         async function loadTeams() {
             try {
                 const res = await fetch("teams.csv");
                 const text = await res.text();
                 const rows = text.split("\n").slice(1);
+
                 teams = rows.filter(r => r.trim()).map(row => {
                     const cols = row.split(",");
-                    return { TeamName: cols[0], Leader: cols[1], Member2: cols[2], Member3: cols[3], Member4: cols[4], Phone: cols[5], UTR: cols[6], Payment: cols[7] }
+                    return {
+                        name: cols[0],
+                        leader: cols[1],
+                        members: [
+                            { n: cols[2], s: cols[4] },
+                            { n: cols[5], s: cols[7] },
+                            { n: cols[8], s: cols[10] },
+                            { n: cols[11], s: cols[13] }
+                        ]
+                    };
                 });
-                const teamList = document.getElementById("teamList");
-                teams.forEach(team => {
-                    const option = document.createElement("option");
-                    option.value = team.TeamName;
-                    teamList.appendChild(option);
+
+                const list = document.getElementById("teamList");
+                teams.forEach(t => {
+                    const op = document.createElement("option");
+                    op.value = t.name;
+                    list.appendChild(op);
                 });
-            } catch (e) { console.error("CSV Load Error"); }
+            } catch (e) { console.error(e); }
         }
-        loadTeams();
 
         function searchTeam() {
-            const input = document.getElementById("teamName").value.trim().toLowerCase();
-            const resultDiv = document.getElementById("result");
-            if (!input) return;
+            const val = document.getElementById("teamName").value.trim().toLowerCase();
+            const out = document.getElementById("result");
+            if (!val) return;
 
-            const team = teams.find(t => t.TeamName.toLowerCase() === input);
+            // Trigger "Processing" look
+            out.innerHTML = `
+                <div class="glass-panel p-16 rounded-lg text-center animate-pulse border-cyan-500/20">
+                    <div class="scan-bar"></div>
+                    <p class="font-mono text-cyan-500 text-xs tracking-widest">ENCRYPTING SEQUENCE...</p>
+                </div>`;
 
-            if (!team) {
-                resultDiv.innerHTML = `<div class="reveal-3d glass p-12 rounded-[2.5rem] text-center"><h3 class="text-white text-xl font-bold mb-2 uppercase">Identity Not Found</h3></div>`;
-                return;
-            }
+            setTimeout(() => {
+                const team = teams.find(t => t.name.toLowerCase() === val);
 
-            const isVerified = team.Payment === "Verified";
-            const statusColor = isVerified ? "text-emerald-400" : "text-rose-500";
-            const statusBg = isVerified ? "bg-emerald-500/10" : "bg-rose-500/10";
+                if (!team) {
+                    out.innerHTML = `
+                        <div class="glass-panel p-12 rounded-lg border-red-500/30 text-center">
+                            <p class="text-red-500 font-mono text-xs mb-2">ACCESS_DENIED</p>
+                            <h2 class="text-3xl font-bold uppercase">Identity Not Recognized</h2>
+                        </div>`;
+                    return;
+                }
 
-            resultDiv.innerHTML = `
-                <div class="reveal-3d glass p-1 rounded-[2.5rem] relative overflow-hidden shadow-2xl">
-                    <div class="scanline"></div>
-                    <div class="p-10 rounded-[2.4rem] bg-gradient-to-b from-white/[0.03] to-transparent">
-                        
-                        <div class="flex flex-col md:flex-row justify-between items-start gap-6 mb-12">
-                            <h2 class="text-5xl font-bold text-white tracking-tighter uppercase italic">${team.TeamName}</h2>
-                            <div class="flex items-center gap-3 px-5 py-2 rounded-full border border-white/10 ${statusBg} ${statusColor}">
-                                <span class="text-[10px] font-black uppercase tracking-[0.2em]">${team.Payment}</span>
+                const allOk = team.members.every(m => m.s === "Verified");
+
+                out.innerHTML = `
+                    <div class="glass-panel p-8 rounded-lg ${allOk ? 'verified-glow' : 'pending-glow'} transition-all duration-700">
+                        <div class="flex justify-between items-end mb-12 border-b border-white/10 pb-6">
+                            <div>
+                                <p class="font-mono text-[10px] text-cyan-500 mb-1 uppercase tracking-tighter">Authentication Subject</p>
+                                <h2 class="text-6xl font-black uppercase tracking-tighter">${team.name}</h2>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-mono text-[10px] text-zinc-500 uppercase">Status</p>
+                                <p class="text-xl font-bold ${allOk ? 'text-cyan-400' : 'text-pink-500'} uppercase">
+                                    ${allOk ? 'Validated' : 'Discrepancy Detected'}
+                                </p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10">
-                            <div>
-                                <label class="text-[9px] font-bold uppercase text-zinc-500 tracking-[0.3em] block mb-2">Leader</label>
-                                <p class="text-2xl text-zinc-100 font-medium">${team.Leader}</p>
-                            </div>
-                            <div>
-                                <label class="text-[9px] font-bold uppercase text-zinc-500 tracking-[0.3em] block mb-2">Phone</label>
-                                <p class="text-2xl text-zinc-100 font-mono">${team.Phone}</p>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="text-[9px] font-bold uppercase text-zinc-500 tracking-[0.3em] block mb-2">Team Members</label>
-                                <p class="text-zinc-300 text-lg font-light">${team.Member2}, ${team.Member3}, ${team.Member4}</p>
-                            </div>
-
-                            <div class="md:col-span-2 pt-8 mt-4 border-t border-white/10 flex flex-col md:flex-row justify-between items-center bg-white/[0.02] -mx-10 -mb-10 p-10">
-                                <div>
-                                    <label class="text-[10px] font-bold uppercase text-zinc-400 tracking-[0.3em] block mb-1">Transaction Ref (UTR)</label>
-                                    <p class="text-white font-mono text-base font-bold tracking-widest uppercase">${team.UTR}</p>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            ${team.members.map((m, i) => `
+                                <div class="bg-white/5 p-4 border border-white/10 rounded group hover:bg-white/10 transition-all">
+                                    <p class="font-mono text-[8px] text-zinc-500 mb-2">OPERATIVE_0${i+1}</p>
+                                    <p class="text-white font-bold text-sm truncate mb-3">${m.n || 'EMPTY_SLOT'}</p>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-1.5 h-1.5 rounded-full ${m.s === 'Verified' ? 'bg-cyan-500 shadow-[0_0_8px_#00f2ff]' : 'bg-pink-500'}"></div>
+                                        <span class="font-mono text-[9px] uppercase ${m.s === 'Verified' ? 'text-cyan-500' : 'text-pink-500'}">${m.s}</span>
+                                    </div>
                                 </div>
-                                <svg class="opacity-20" width="60" height="20" viewBox="0 0 120 30"><rect x="0" y="5" width="2" height="20" fill="white"/><rect x="5" y="5" width="5" height="20" fill="white"/><rect x="15" y="5" width="2" height="20" fill="white"/><rect x="20" y="5" width="8" height="20" fill="white"/></svg>
-                            </div>
+                            `).join('')}
+                        </div>
+
+                        <div class="mt-8 flex justify-between items-center opacity-40">
+                            <p class="font-mono text-[9px]">LEADER: ${team.leader}</p>
+                            <p class="font-mono text-[9px]">TIMESTMP: ${new Date().toLocaleTimeString()}</p>
                         </div>
                     </div>
-                </div>
-            `;
+                `;
+            }, 800);
         }
 
-        function clearResult() {
-            document.getElementById("teamName").value = "";
-            document.getElementById("result").innerHTML = `
-                <div class="flex flex-col items-center justify-center pt-20 opacity-20">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg>
-                    <p class="text-[10px] tracking-[0.3em] uppercase font-bold mt-4">System Ready</p>
-                </div>`;
-        }
+        loadTeams();
     </script>
 </body>
 </html>
